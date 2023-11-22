@@ -2,6 +2,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth' // Auth service
 import { getFirestore, collection } from 'firebase/firestore' // Database package in firebase
+import { getStorage } from 'firebase/storage' // Storage for music mp3
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -23,3 +24,4 @@ const usersCollection = collection(db, 'users')
 
 // export as named exports
 export { auth, db, usersCollection }
+export const storage = getStorage(app)

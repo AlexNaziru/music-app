@@ -46,6 +46,9 @@
 </template>
 
 <script>
+import { storage } from '../plugins/firebase'
+import { ref, uploadBytes } from 'firebase/storage'
+
 export default {
   name: 'Upload',
   data() {
@@ -55,7 +58,21 @@ export default {
   },
   methods: {
     upload($event) {
+      // Uploading to firebase
       this.is_dragover = false
+      const files = [...$event.dataTransfer.files] // Converting an object into an array
+
+      files.forEach((file) => {
+        if (file.type !== 'audio/mpeg') {
+          console.log('Bad format file')
+          return
+        }
+        const storageReference = ref(storage, `songs/${file.name}`)
+        uploadBytes(storageReference, file).then((snapshot) => {
+          console.log('Upload a blob or a file!')
+        })
+      })
+      console.log(files)
     }
   }
 }
