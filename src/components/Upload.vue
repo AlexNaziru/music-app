@@ -21,24 +21,18 @@
       </div>
       <hr class="my-6" />
       <!-- Progess Bars -->
-      <div class="mb-4">
+      <div class="mb-4" v-for="upload in uploads" :key="upload.name">
         <!-- File Name -->
-        <div class="font-bold text-sm">Just another song.mp3</div>
+        <div class="font-bold text-sm" :class="upload.text_class">
+          <i :class="upload.icon"></i> {{ upload.name }}
+        </div>
         <div class="flex h-4 overflow-hidden bg-gray-200 rounded">
           <!-- Inner Progress Bar -->
-          <div class="transition-all progress-bar bg-blue-400" style="width: 75%"></div>
-        </div>
-      </div>
-      <div class="mb-4">
-        <div class="font-bold text-sm">Just another song.mp3</div>
-        <div class="flex h-4 overflow-hidden bg-gray-200 rounded">
-          <div class="transition-all progress-bar bg-blue-400" style="width: 35%"></div>
-        </div>
-      </div>
-      <div class="mb-4">
-        <div class="font-bold text-sm">Just another song.mp3</div>
-        <div class="flex h-4 overflow-hidden bg-gray-200 rounded">
-          <div class="transition-all progress-bar bg-blue-400" style="width: 55%"></div>
+          <div
+            class="transition-all progress-bar"
+            :class="upload.variant"
+            :style="{ width: upload.current_progress + '%' }"
+          ></div>
         </div>
       </div>
     </div>
@@ -47,32 +41,63 @@
 
 <script>
 import { storage } from '../plugins/firebase'
-import { ref, uploadBytes } from 'firebase/storage'
+import { ref, uploadBytesResumable } from 'firebase/storage'
 
 export default {
   name: 'Upload',
   data() {
     return {
-      is_dragover: false
+      is_dragover: false,
+      uploads: []
     }
   },
   methods: {
     upload($event) {
       // Uploading to firebase
       this.is_dragover = false
-      const files = [...$event.dataTransfer.files] // Converting an object into an array
+      const files = [...$event.dataTransfer.files] // Converting an object into an array or Converting FileList to Array
 
       files.forEach((file) => {
         if (file.type !== 'audio/mpeg') {
-          console.log('Bad format file')
+          console.error('File format not supported')
           return
         }
+
+        // Create a storage reference from our storage service
         const storageReference = ref(storage, `songs/${file.name}`)
-        uploadBytes(storageReference, file).then((snapshot) => {
-          console.log('Upload a blob or a file!')
-        })
+
+        // Start the upload
+        const uploadTask = uploadBytesResumable(storageReference, file)
+
+        // Add to uploads array for progress tracking
+        const uploadIndex =
+          this.uploads.push({
+            name: file.name,
+            current_progress: 0,
+            variant: 'bg-green-400',
+            icon: 'fas fa-spinner fa-spin',
+            text_class: ''
+          }) - 1 //the object is inserted as the last item in the array. We subtract 1 to get the last item in the array
+
+        // Listen for state changes, errors, and completion of the upload.
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            this.uploads[uploadIndex].current_progress = progress
+            console.log('Upload is ' + progress + '% done')
+          },
+          (error) => {
+            // Handle unsuccessful uploads
+            console.error('Upload failed', error)
+          },
+          () => {
+            // Handle successful uploads on complete
+            console.log('Upload is complete!')
+          }
+        )
       })
-      console.log(files)
     }
   }
 }
