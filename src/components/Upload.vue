@@ -74,8 +74,8 @@ export default {
           this.uploads.push({
             name: file.name,
             current_progress: 0,
-            variant: 'bg-green-400',
-            icon: 'fas fa-spinner fa-spin',
+            variant: 'bg-blue-500',
+            icon: 'fas fa-spinn er fa-spin',
             text_class: ''
           }) - 1 //the object is inserted as the last item in the array. We subtract 1 to get the last item in the array
 
@@ -89,10 +89,16 @@ export default {
             console.log('Upload is ' + progress + '% done')
           },
           (error) => {
+            this.uploads[uploadIndex].variant = 'bg-red-400'
+            this.uploads[uploadIndex].icon = 'fas fa-times'
+            this.uploads[uploadIndex].text_class = 'text-red-400'
             // Handle unsuccessful uploads
             console.error('Upload failed', error)
           },
           () => {
+            this.uploads[uploadIndex].variant = 'bg-green-500'
+            this.uploads[uploadIndex].icon = 'fas fa-check'
+            this.uploads[uploadIndex].text_class = 'text-green-500'
             // Handle successful uploads on complete
             console.log('Upload is complete!')
           }
