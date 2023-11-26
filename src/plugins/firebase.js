@@ -21,7 +21,8 @@ const auth = getAuth()
 const db = getFirestore()
 
 const usersCollection = collection(db, 'users')
+const songsCollection = collection(db, 'songs')
 
 // export as named exports
-export { auth, db, usersCollection }
+export { auth, db, usersCollection, songsCollection }
 export const storage = getStorage(app)

@@ -40,8 +40,9 @@
 </template>
 
 <script>
-import { storage } from '../plugins/firebase'
-import { ref, uploadBytesResumable } from 'firebase/storage'
+import { storage, auth, songsCollection } from '../plugins/firebase'
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
+import { addDoc } from 'firebase/firestore'
 
 export default {
   name: 'Upload',
@@ -95,12 +96,32 @@ export default {
             // Handle unsuccessful uploads
             console.error('Upload failed', error)
           },
-          () => {
-            this.uploads[uploadIndex].variant = 'bg-green-500'
-            this.uploads[uploadIndex].icon = 'fas fa-check'
-            this.uploads[uploadIndex].text_class = 'text-green-500'
+          async () => {
             // Handle successful uploads on complete
-            console.log('Upload is complete!')
+            try {
+              const downloadURL = await getDownloadURL(storageReference) // Correct usage of getDownloadURL
+              const song = {
+                uid: auth.currentUser.uid,
+                display_name: auth.currentUser.displayName,
+                original_name: uploadTask.snapshot.ref.name,
+                modified_name: uploadTask.snapshot.ref.name,
+                genre: '',
+                comment_count: 0,
+                url: downloadURL
+              }
+              // storing the id of a user that uploaded
+
+              // Add song metadata to Firestore
+              await addDoc(songsCollection, song)
+
+              this.uploads[uploadIndex].variant = 'bg-green-500'
+              this.uploads[uploadIndex].icon = 'fas fa-check'
+              this.uploads[uploadIndex].text_class = 'text-green-500'
+              // Handle successful uploads on complete
+              console.log('Upload is complete!')
+            } catch (error) {
+              console.error('Error getting download URL', error)
+            }
           }
         )
       })
