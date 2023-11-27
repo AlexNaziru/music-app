@@ -19,6 +19,7 @@
       >
         <h5>Drop your files here</h5>
       </div>
+      <input type="file" multiple @change="upload($event)" />
       <hr class="my-6" />
       <!-- Progess Bars -->
       <div class="mb-4" v-for="upload in uploads" :key="upload.name">
@@ -56,7 +57,10 @@ export default {
     upload($event) {
       // Uploading to firebase
       this.is_dragover = false
-      const files = [...$event.dataTransfer.files] // Converting an object into an array or Converting FileList to Array
+
+      const files = $event.dataTransfer // this is so the upload button works
+        ? [...$event.dataTransfer.files] // Converting an object into an array or Converting FileList to Array
+        : [...$event.target.files] // the spread operator
 
       files.forEach((file) => {
         if (file.type !== 'audio/mpeg') {
@@ -125,7 +129,19 @@ export default {
           }
         )
       })
+    },
+    // another method of cancelling uploads
+    cencelUploads() {
+      this.uploads.forEach((upload) => {
+        upload.task.cancel()
+      })
     }
+  },
+  // Cancelling uploads
+  beforeMount() {
+    this.uploads.forEach((upload) => {
+      upload.task.cancel()
+    })
   }
 }
 </script>
