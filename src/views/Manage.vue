@@ -19,6 +19,7 @@
               :song="song"
               :updateSong="updateSong"
               :index="i"
+              :removeSong="removeSong"
             />
           </div>
         </div>
@@ -65,11 +66,13 @@ export default {
   },
   methods: {
     updateSong(i, values) {
-      console.log(`Updating song at index ${i} with values:`, values)
       // i stands for index
       this.songs[i].modified_name = values.modified_name
       this.songs[i].genre = values.genre
     }
+  },
+  removeSong(i) {
+    this.songs.splice(i, 1)
   },
   beforeRouteLeave(to, from, next) {
     this.$refs.upload.cancelUploads()

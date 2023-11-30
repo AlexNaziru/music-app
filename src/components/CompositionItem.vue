@@ -3,7 +3,10 @@
   <div class="border border-gray-200 p-3 mb-4 rounded">
     <div v-show="!showForm">
       <h4 class="inline-block text-2xl font-bold">{{ song.modified_name }}</h4>
-      <button class="ml-1 py-1 px-2 text-sm rounded text-white bg-red-600 float-right">
+      <button
+        class="ml-1 py-1 px-2 text-sm rounded text-white bg-red-600 float-right"
+        @click.prevent="deleteSong"
+      >
         <i class="fa fa-times"></i>
       </button>
       <button
@@ -63,13 +66,12 @@
 </template>
 
 <script>
-import { songsCollection } from '../plugins/firebase'
+import { songsCollection, storage } from '../plugins/firebase'
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { ref as storageRef, deleteObject } from 'firebase/storage'
 
 export default {
   name: 'CompositionItem',
-  created() {
-    console.log('CompositionItem props:', this.song, this.index)
-  },
   props: {
     song: {
       type: Object,
@@ -81,6 +83,10 @@ export default {
     },
     index: {
       type: Number,
+      required: true
+    },
+    removeSong: {
+      type: Function,
       required: true
     }
   },
@@ -99,16 +105,19 @@ export default {
   },
   methods: {
     async edit(values) {
-      console.log('edit method called with values:', values)
       this.in_submission = true
       this.show_alert = true
       this.alert_variant = 'bg-blue-500'
       this.alert_message = 'Please wait! Updating song info.'
 
       try {
-        await songsCollection.doc(this.song.docID).update(values)
-        console.log('Song updated in Firestore', values)
+        // Get a reference to the specific document
+        const songDocRef = doc(songsCollection, this.song.docID)
+
+        // Update the document
+        await updateDoc(songDocRef, values)
       } catch (error) {
+        console.error('Error updating song:', error)
         this.in_submission = false
         this.alert_variant = 'bg-red-500'
         this.alert_message = 'Something went wrong! Try again!'
@@ -120,6 +129,24 @@ export default {
       this.in_submission = false
       this.alert_variant = 'bg-green-500'
       this.alert_message = 'Success!'
+    },
+    async deleteSong() {
+      try {
+        // Deleting song from firebase
+        const songFileRef = storageRef(storage, `songs/${this.song.original_name}`)
+        await deleteObject(songFileRef)
+        console.log('Song deleted from storage!')
+
+        // Delete from Firestore
+        const songDocRef = doc(songsCollection, this.song.docID)
+        await deleteDoc(songDocRef)
+        console.log('Song doc delete from Firestore')
+
+        // Update the local state to reflect the deletion
+        this.removeSong(this.index)
+      } catch (error) {
+        console.error('Error deleting song:', error)
+      }
     }
   }
 }
