@@ -13,7 +13,13 @@
           </div>
           <div class="p-6">
             <!-- Composition item -->
-            <CompositionItem v-for="song in songs" :key="song.docID" :song="song" />
+            <CompositionItem
+              v-for="(song, i) in songs"
+              :key="song.docID"
+              :song="song"
+              :updateSong="updateSong"
+              :index="i"
+            />
           </div>
         </div>
       </div>
@@ -49,11 +55,20 @@ export default {
 
         snapshot.forEach((doc) => {
           const song = { ...doc.data(), docID: doc.id }
+          console.log('Fetched song:', song)
           this.songs.push(song)
         })
       }
     } catch (error) {
-      console.log('Error in created hook:', error)
+      console.error('Error in created hook:', error)
+    }
+  },
+  methods: {
+    updateSong(i, values) {
+      console.log(`Updating song at index ${i} with values:`, values)
+      // i stands for index
+      this.songs[i].modified_name = values.modified_name
+      this.songs[i].genre = values.genre
     }
   },
   beforeRouteLeave(to, from, next) {
