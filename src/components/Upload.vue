@@ -43,7 +43,7 @@
 <script>
 import { storage, auth, songsCollection } from '../plugins/firebase'
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
-import { addDoc } from 'firebase/firestore'
+import { addDoc, setDoc, getDoc, doc } from 'firebase/firestore'
 
 export default {
   name: 'Upload',
@@ -53,6 +53,7 @@ export default {
       uploads: []
     }
   },
+  props: ['addSong'],
   methods: {
     upload($event) {
       // Uploading to firebase
@@ -116,7 +117,10 @@ export default {
               // storing the id of a user that uploaded
 
               // Add song metadata to Firestore
-              await addDoc(songsCollection, song)
+              const songRef = doc(songsCollection)
+              await setDoc(songRef, song)
+              const songSnapshot = await getDoc(songRef)
+              this.addSong(songSnapshot)
 
               this.uploads[uploadIndex].variant = 'bg-green-500'
               this.uploads[uploadIndex].icon = 'fas fa-check'
