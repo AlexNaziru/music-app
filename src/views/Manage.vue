@@ -20,6 +20,7 @@
               :updateSong="updateSong"
               :removeSong="removeSong"
               :index="i"
+              :updateUnsavedFlag="updateUnsavedFlag"
             />
           </div>
         </div>
@@ -44,7 +45,8 @@ export default {
   data() {
     // putting the snapshot documents into the songs array
     return {
-      songs: []
+      songs: [],
+      unsavedFlag: false
     }
   },
   // Quering
@@ -74,11 +76,18 @@ export default {
       const song = { ...doc.data(), docID: doc.id }
       console.log('Fetched song:', song)
       this.songs.push(song)
+    },
+    updateUnsavedFlag(value) {
+      this.unsavedFlag = value
     }
   },
   beforeRouteLeave(to, from, next) {
-    this.$refs.upload.cancelUploads()
-    next() // $refs is a vue component
+    if (!this.unsavedFlag) {
+      next()
+    } else {
+      const leave = confirm('You have unsaved changes! Are you sure you want to leave ?')
+      next(leave)
+    }
   }
 }
 </script>
