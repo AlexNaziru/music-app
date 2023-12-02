@@ -41,7 +41,7 @@
 
 <script>
 import { songsCollection } from '../plugins/firebase'
-import { getDocs } from 'firebase/firestore'
+import { query, doc, getDoc, getDocs, limit, startAfter, orderBy } from 'firebase/firestore'
 import SongItem from '../components/SongItem.vue'
 
 export default {
@@ -51,20 +51,45 @@ export default {
   },
   data() {
     return {
-      songs: []
+      songs: [],
+      maxPerPage: 3
     }
   },
+  // infinit page
   async created() {
-    const snapshots = await getDocs(songsCollection)
+    this.getSongs()
 
-    snapshots.forEach((document) => {
-      const songData = {
-        docID: document.id,
-        ...document.data()
+    window.addEventListener('scroll', this.handleScroll)
+  },
+  beforeUnmount() {
+    // if the user navigates to a different page
+    window.removeEventListener('scroll', this.handleScroll)
+  },
+  methods: {
+    // this method will add an infinit page with all the songs uploaded
+    async getSongs() {
+      let q
+      if (this.songs.length > 0) {
+        const lastDocSnap = await getDoc(
+          doc(songsCollection, this.songs[this.songs.length - 1].docID)
+        )
+        q = query(
+          songsCollection,
+          orderBy('modified_name'),
+          startAfter(lastDocSnap),
+          limit(this.maxPerPage)
+        )
+      } else {
+        q = query(songsCollection, orderBy('modified_name'), limit(this.maxPerPage))
       }
-      console.log(songData) // Add this line to log each song's data
-      this.songs.push(songData)
-    })
+      const querySnapshot = await getDocs(q)
+      querySnapshot.forEach((doc) => {
+        this.songs.push({
+          docID: doc.id,
+          ...doc.data()
+        })
+      })
+    }
   }
 }
 </script>
