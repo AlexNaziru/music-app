@@ -122,6 +122,12 @@ export default {
       this.$router.push({ name: 'home' })
       return
     }
+    // saving the sorting order
+    const sortQuery = this.$route.query.sort
+    if (sortQuery === '1' || sortQuery === '2') {
+      this.sort = sortQuery
+    }
+
     this.song = docSnapshot.data()
     this.getComments()
   },
@@ -168,6 +174,13 @@ export default {
           ...doc.data()
         })
       })
+    }
+  },
+  watch: {
+    sort(newValue) {
+      // this condition will prevent the watcher from updating the route if the query paramater already matches the sort value
+      // Update the query parameter without reloading the page
+      this.$router.replace({ query: { ...this.$route.query, sort: newValue } })
     }
   }
 }
