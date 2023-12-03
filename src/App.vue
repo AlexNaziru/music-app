@@ -1,7 +1,12 @@
 <template>
   <AppHeader></AppHeader>
 
-  <RouterView></RouterView>
+  <RouterView v-slot="{ Component }">
+    <transition name="fade">
+      <component :is="Component"></component
+      ><!-- you can use loading component dynamically -->
+    </transition>
+  </RouterView>
 
   <AppPlayer></AppPlayer>
 
@@ -33,3 +38,16 @@ export default {
   }
 }
 </script>
+
+<style>
+.fade-enter-from {
+  opacity: 0;
+}
+.fade-enter-active {
+  transition: all 0.5s linear;
+}
+.fade-leave-to {
+  transition: all 0.5s linear;
+  opacity: 0;
+}
+</style>
