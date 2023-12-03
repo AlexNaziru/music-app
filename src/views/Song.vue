@@ -8,6 +8,7 @@
     <div class="container mx-auto flex items-center" v-if="song && song.modified_name">
       <!-- Play/Pause Button -->
       <button
+        @click.prevent="newSong(song)"
         type="button"
         class="z-50 h-24 w-24 text-3xl bg-white text-black rounded-full focus:outline-none"
       >
@@ -25,7 +26,7 @@
     <div class="bg-white rounded border border-gray-200 relative flex flex-col">
       <div class="px-6 pt-6 pb-5 font-bold border-b border-gray-200">
         <!-- Comment Count -->
-        <span class="card-title">Comments (15)</span>
+        <span class="card-title">Comments {{ song.comment_count }}</span>
         <i class="fa fa-comments float-right text-green-400 text-2xl"></i>
       </div>
       <div class="p-6">
@@ -84,9 +85,10 @@
 </template>
 <script>
 import { songsCollection, auth, commentsCollection } from '../plugins/firebase'
-import { doc, getDoc, addDoc, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore'
-import { mapState } from 'pinia'
+import { doc, getDoc, addDoc, query, where, getDocs, updateDoc } from 'firebase/firestore'
+import { mapState, mapActions } from 'pinia'
 import { useUserStore } from '../stores/users'
+import usePlayerStore from '../stores/player'
 
 export default {
   name: 'Song',
@@ -132,6 +134,8 @@ export default {
     this.getComments()
   },
   methods: {
+    ...mapActions(usePlayerStore, ['newSong']),
+
     async addComment(values, { resetForm }) {
       this.comment_in_submission = true
       this.comment_show_alert = true
@@ -148,6 +152,15 @@ export default {
 
       try {
         await addDoc(commentsCollection, comment)
+
+        // Update the comment count in the existing song document
+        const newCommentCount = this.song.comment_count + 1
+        const songDocRef = doc(songsCollection, this.$route.params.id)
+        await updateDoc(songDocRef, {
+          comment_count: newCommentCount
+        })
+        // Update the local song object to reflect the new comment count
+        this.song.comment_count = newCommentCount
 
         this.getComments()
 
