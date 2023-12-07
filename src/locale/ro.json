@@ -1,5 +1,8 @@
 {
   "home": {
     "listen": "Asculta musica buna!"
+  },
+  "manage": {
+    "my_songs": "Melodiile mele"
   }
 }
