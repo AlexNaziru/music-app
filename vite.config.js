@@ -26,7 +26,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,jpg,}', 'index.html']
+        globDirectory: 'G:/music-app/dev-dist',
+        globPatterns: ['**/*.{js,css,html,png,jpg,}']
       }
     })
   ],
