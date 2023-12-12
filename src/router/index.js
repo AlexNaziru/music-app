@@ -1,15 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 import AboutView from '../views/AboutView.vue'
 import Manage from '../views/Manage.vue'
 import Song from '../views/Song.vue'
 import { useUserStore } from '../stores/users'
 
+const Home = () => import('../views/HomeView.vue') // Dynamic Route Imports that make switching between components faster
+
 const routes = [
   {
     name: 'home',
     path: '/',
-    component: HomeView
+    component: Home
   },
   {
     name: 'about',

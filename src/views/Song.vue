@@ -123,20 +123,23 @@ export default {
       })
     }
   },
-  async created() {
-    const docSnapshot = await getDoc(doc(songsCollection, this.$route.params.id))
-    if (!docSnapshot.exists) {
-      this.$router.push({ name: 'home' })
-      return
-    }
-    // saving the sorting order
-    const sortQuery = this.$route.query.sort
-    if (sortQuery === '1' || sortQuery === '2') {
-      this.sort = sortQuery
-    }
+  async beforeRouteEnter(to, from, next) {
+    const docSnapshot = await getDoc(doc(songsCollection, to.params.id))
 
-    this.song = docSnapshot.data()
-    this.getComments()
+    next((vm) => {
+      if (!docSnapshot.exists) {
+        vm.$router.push({ name: 'home' })
+        return
+      }
+      // saving the sorting order
+      const sortQuery = vm.$route.query.sort
+      if (sortQuery === '1' || sortQuery === '2') {
+        vm.sort = sortQuery
+      }
+
+      vm.song = docSnapshot.data()
+      vm.getComments()
+    })
   },
   methods: {
     ...mapActions(usePlayerStore, ['newSong']),
